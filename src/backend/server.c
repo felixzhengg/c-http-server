@@ -85,6 +85,28 @@ char *read_file(const char *path)
 	return buffer;
 }
 
+// function to return HTTP status code
+const char *get_status_code(const char *path)
+{
+	if (path == NULL || strlen(path) == 0)
+		return "400 Bad Request";
+
+	FILE *file = fopen(path, "rb");
+	if (file)
+	{
+		fclose(file);
+		return "200 OK"; // File found
+	}
+
+	if (errno == EACCES)
+		return "403 Forbidden"; // No permission
+
+	if (errno == ENOENT)
+		return "404 Not Found"; // File not found
+
+	return "500 Internal Server Error"; // Unknown error
+}
+
 // function to handle HTTP request
 void handle_http_request(SOCKET ClientSocket, const char *path)
 {
@@ -253,17 +275,17 @@ int main(void)
 
 int main(void)
 {
-   struct sigaction act;
+	struct sigaction act;
 
-   act.sa_handler = CtrlHandler;
-   sigemptyset(&act.sa_mask);
-   act.sa_flags = 0; 
+	act.sa_handler = CtrlHandler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
 
-   sigaction(
-	SIGINT,
-	&act,
-	NULL); // listen for CTRL-C
-	
+	sigaction(
+		SIGINT,
+		&act,
+		NULL); // listen for CTRL-C
+
 	setbuf(stdout, NULL);
 	struct addrinfo hints;
 	memset(
