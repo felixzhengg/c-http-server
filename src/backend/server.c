@@ -2,7 +2,7 @@
 
 #define IP_ADDRESS "127.0.0.1"
 #define PORT "6967"
-#define FRONTEND_DIR "src/frontend"
+#define FRONTEND_DIR "../src/frontend"
 
 #if _WIN32
 #include "../../include/pause.h"
@@ -113,7 +113,7 @@ void handle_http_request(SOCKET ClientSocket, const char *path)
 	char file_path[512];
 
 	if (strcmp(path, "/") == 0)
-		snprintf(file_path, sizeof(file_path), "%s/index.html", FRONTEND_DIR);
+		snprintf(file_path, sizeof(file_path), "%s/main_page.html", FRONTEND_DIR);
 	else
 		snprintf(file_path, sizeof(file_path), "%s%s", FRONTEND_DIR, path);
 
@@ -331,7 +331,6 @@ int main(void)
 		128);
 	error_print(listen_error_code, "listen()");
 
-
 	while (1)
 	{
 		int sock_accept = accept(
@@ -339,13 +338,13 @@ int main(void)
 			result->ai_addr,
 			&result->ai_addrlen);
 
-		if (sock_accept < 0) 
+		if (sock_accept < 0)
 		{
 			error_print(sock_accept, "accept()");
 		}
-	
+
 		char buf[2056]; // set buffer size
-	
+
 		int byte_count = recv(
 			sock_accept,
 			buf,
@@ -353,34 +352,34 @@ int main(void)
 			0); // receive size in bytes of info, info put into buffer
 		error_print(byte_count, "recv()");
 
-		if (byte_count > 0) 
-		{	
-				buf[byte_count] = '\0'; // add null terminator to end of buffer
-			
-				printf("recv()'d %d bytes of data in buf\n", byte_count);
-				printf("BUF: %.*s", byte_count, buf); // <-- give printf() the actual data size
-			
-				char message[sizeof(buf)];
-				strcpy(message, buf); // buf gets modified from strtok, so saving it to message
-			
-				char *command;
-				char *file;
-				char *saveptr;
-			
-				command = strtok_r(
-					buf,
-					" ",
-					&saveptr); // buf is tokenized so no longer useable for general usage
-			
-				file = strtok_r(
-					NULL,
-					" ",
-					&saveptr); // may have an issue if file name has a space in it
-			
-				printf("COMMAND: %s ", command);
-				printf("\nFILE: %s\n", file);
-			
-				return_file(file, sock_accept);
+		if (byte_count > 0)
+		{
+			buf[byte_count] = '\0'; // add null terminator to end of buffer
+
+			printf("recv()'d %d bytes of data in buf\n", byte_count);
+			printf("BUF: %.*s", byte_count, buf); // <-- give printf() the actual data size
+
+			char message[sizeof(buf)];
+			strcpy(message, buf); // buf gets modified from strtok, so saving it to message
+
+			char *command;
+			char *file;
+			char *saveptr;
+
+			command = strtok_r(
+				buf,
+				" ",
+				&saveptr); // buf is tokenized so no longer useable for general usage
+
+			file = strtok_r(
+				NULL,
+				" ",
+				&saveptr); // may have an issue if file name has a space in it
+
+			printf("COMMAND: %s ", command);
+			printf("\nFILE: %s\n", file);
+
+			return_file(file, sock_accept);
 		}
 
 		int shutdown_error_code = shutdown(sock_accept, SHUT_RDWR);
@@ -391,8 +390,6 @@ int main(void)
 
 	// char *return_header = return_code(404, file);
 	// printf("\n%s", return_header);
-
-
 
 	freeaddrinfo(result);
 
